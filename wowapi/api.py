@@ -58,6 +58,7 @@ class WowApi(GameDataMixin, ProfileMixin):
         self._session.mount('https://', HTTPAdapter(max_retries=retries))
 
     def _get_client_credentials(self, region):
+        region = 'kr'
         path = '/oauth/token'
         data = {'grant_type': 'client_credentials'}
         auth = HTTPBasicAuth(self._client_id, self._client_secret)
