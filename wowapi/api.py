@@ -58,12 +58,11 @@ class WowApi(GameDataMixin, ProfileMixin):
         self._session.mount('https://', HTTPAdapter(max_retries=retries))
 
     def _get_client_credentials(self, region):
-        region = 'kr'
         path = '/oauth/token'
         data = {'grant_type': 'client_credentials'}
         auth = HTTPBasicAuth(self._client_id, self._client_secret)
 
-        url = 'https://{0}.battle.net{1}'.format(region, path)
+        url = 'https://{0}.battle.net{1}'.format('kr', path)
         if region == 'cn':
             url = 'https://www.battlenet.com.cn{0}'.format(path)
 
@@ -114,7 +113,7 @@ class WowApi(GameDataMixin, ProfileMixin):
         api.get_data_resource(auctions_ref['files'][0]['url'], 'eu')
         ```
         """
-        access_token = self._access_tokens.get(region, {}).get('token', '')
+        access_token = self._access_tokens.get('kr', {}).get('token', '')
         if access_token:
             filters['access_token'] = access_token
 
@@ -140,23 +139,22 @@ class WowApi(GameDataMixin, ProfileMixin):
             raise WowApiException(msg)
 
     def get_resource(self, resource, region, *args, **filters):
-        region = 'kr'
         resource = resource.format(*args)
 
         # fetch access token on first run for region
-        if region not in self._access_tokens:
+        if 'kr' not in self._access_tokens:
             logger.info('Fetching access token..')
-            self._get_client_credentials(region)
+            self._get_client_credentials('kr')
         else:
             now = self._utcnow()
             # refresh access token if expiring in the next 30 seconds.
             # this protects against the rare occurrence of hitting
             # the API right as your token expires, causing errors.
-            if now >= self._access_tokens[region]['expiration'] - timedelta(seconds=30):
+            if now >= self._access_tokens['kr']['expiration'] - timedelta(seconds=30):
                 logger.info('Access token expired. Fetching new token..')
-                self._get_client_credentials(region)
+                self._get_client_credentials('kr')
 
-        filters['access_token'] = self._access_tokens[region]['token']
+        filters['access_token'] = self._access_tokens['kr']['token']
         url = self._format_base_url(resource, region)
         logger.info('Requesting resource: {0} with parameters: {1}'.format(url, filters))
         return self._handle_request(url, params=filters)
