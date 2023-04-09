@@ -140,12 +140,13 @@ class WowApi(GameDataMixin, ProfileMixin):
             raise WowApiException(msg)
 
     def get_resource(self, resource, region, *args, **filters):
+        region = 'kr'
         resource = resource.format(*args)
 
         # fetch access token on first run for region
         if region not in self._access_tokens:
             logger.info('Fetching access token..')
-            self._get_client_credentials('kr')
+            self._get_client_credentials(region)
         else:
             now = self._utcnow()
             # refresh access token if expiring in the next 30 seconds.
@@ -153,7 +154,7 @@ class WowApi(GameDataMixin, ProfileMixin):
             # the API right as your token expires, causing errors.
             if now >= self._access_tokens[region]['expiration'] - timedelta(seconds=30):
                 logger.info('Access token expired. Fetching new token..')
-                self._get_client_credentials('kr')
+                self._get_client_credentials(region)
 
         filters['access_token'] = self._access_tokens[region]['token']
         url = self._format_base_url(resource, region)
