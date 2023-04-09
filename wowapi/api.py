@@ -92,6 +92,12 @@ class WowApi(GameDataMixin, ProfileMixin):
         expiration = now + timedelta(seconds=json['expires_in'])
         logger.info('New token {0} expires at {1} UTC'.format(token, expiration))
 
+        if region == 'kr':
+            self._access_tokens['eu'] = {
+                'token': token,
+                'expiration': expiration
+            }
+        
         self._access_tokens[region] = {
             'token': token,
             'expiration': expiration
